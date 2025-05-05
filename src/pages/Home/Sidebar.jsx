@@ -1,14 +1,37 @@
-const Sidebar = ({ handleClick }) => {
+const Sidebar = ({ handleClick, showAnimationBtn }) => {
   return (
     <div className="flex flex-col w-full max-w-md gap-2 p-2 mx-auto lg:h-full lg:overflow-y-auto">
       <div className="flex flex-col w-full lg:flex-col-reverse">
-        <button
-          onClick={handleClick}
-          id="step-placeBet"
-          className="w-full p-3 font-medium text-black rounded bg-stakeGreen active:scale-[99%] disabled:opacity-50"
-        >
-          Bet
-        </button>
+        {showAnimationBtn ? (
+          <button
+            id="step-placeBet"
+            className="w-full p-3 font-medium text-black rounded bg-stakeGreen active:scale-[99%] disabled:opacity-50"
+            disabled
+          >
+            <span className="flex items-center justify-center">
+              <div className="relative w-4 h-6">
+                <div className="absolute w-4 h-6 rounded-sm bg-neutral-800 slide-animate delay-0 " />
+                <div
+                  className="absolute w-4 h-6 rounded-sm bg-neutral-800 slide-animate opacity-80"
+                  style={{ animationDelay: "100ms", scale: "0.9" }}
+                />
+                <div
+                  className="absolute w-4 h-6 rounded-sm bg-neutral-800 slide-animate opacity-60"
+                  style={{ animationDelay: "200ms", scale: "0.8" }}
+                />
+              </div>
+            </span>
+          </button>
+        ) : (
+          <button
+            onClick={handleClick}
+            id="step-placeBet"
+            className="w-full p-3 font-medium text-black rounded bg-stakeGreen active:scale-[99%] disabled:opacity-50"
+          >
+            Bet
+          </button>
+        )}
+
         <div className="flex items-center justify-center w-full h-20 gap-6">
           <button className="flex flex-col text-white/50 items-center justify-center gap-0.5 text-[10px] font-medium disabled:opacity-40">
             <svg

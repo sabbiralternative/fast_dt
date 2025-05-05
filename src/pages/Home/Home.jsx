@@ -5,158 +5,44 @@ import BetSlip from "./BetSlip";
 import FiftyTwoCard from "./FiftyTwoCard";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import { changeCardsProperty, fiftyTwoCard } from "../../static/fiftyTwoCard";
 
 const Home = () => {
-  const [firstCard, setFirstCard] = useState({
-    top: "0",
-    right: "0",
-    translateZ: "0",
-    rotateY: "0",
-    delay: "0",
-  });
-  const [secondCard, setSecondCard] = useState({
-    top: "0",
-    right: "0",
-    translateZ: "1",
-    rotateY: "0",
-    delay: "0",
-  });
-  const [thirdCard, setThirdCard] = useState({
-    top: "0",
-    right: "0",
-    translateZ: "2",
-    rotateY: "0",
-    delay: "0",
-  });
-  const [fourthCardCard, setFourthCard] = useState({
-    top: "0",
-    right: "0",
-    translateZ: "3",
-    rotateY: "0",
-    delay: "0",
-  });
+  const [cards, setCards] = useState(fiftyTwoCard);
+  const [showAnimationBtn, setShowAnimationBtn] = useState(false);
+
   const handleClick = () => {
-    setTimeout(() => {
-      setFirstCard({
-        right: "20",
-        top: "0",
-        translateZ: "0",
-        rotateY: "0",
-        delay: "0",
-      });
-      setSecondCard({
-        right: "20",
-        top: "0",
-        translateZ: "1",
-        rotateY: "0",
-        delay: "0",
-      });
-      setThirdCard({
-        right: "20",
-        top: "0",
-        translateZ: "2",
-        rotateY: "0",
-        delay: "0",
-      });
-      setFourthCard({
-        right: "20",
-        top: "0",
-        translateZ: "3",
-        rotateY: "0",
-        delay: "0",
-      });
-    }, 200);
-    setTimeout(() => {
-      setFirstCard({
-        right: "5",
-        top: "0",
-        translateZ: "0",
-        rotateY: "0",
-        delay: "0",
-      });
-      setSecondCard({
-        right: "5",
-        top: "0",
-        translateZ: "2",
-        rotateY: "0",
-        delay: "0.005",
-      });
-      setThirdCard({
-        right: "5",
-        top: "0",
-        translateZ: "4",
-        rotateY: "0",
-        delay: "0.001",
-      });
-      setFourthCard({
-        right: "5",
-        top: "0",
-        translateZ: "6",
-        rotateY: "0",
-        delay: "0.015",
-      });
-    }, 400);
-    setTimeout(() => {
-      setFirstCard({
-        right: "20",
-        top: "0",
-        translateZ: "0",
-        rotateY: "0",
-        delay: "0",
-      });
-      setSecondCard({
-        right: "20",
-        top: "0",
-        translateZ: "1",
-        rotateY: "0",
-        delay: "0",
-      });
-      setThirdCard({
-        right: "20",
-        top: "0",
-        translateZ: "2",
-        rotateY: "0",
-        delay: "0",
-      });
-      setFourthCard({
-        right: "20",
-        top: "0",
-        translateZ: "3",
-        rotateY: "0",
-        delay: "0",
-      });
-    }, 600);
-    setTimeout(() => {
-      setFirstCard({
-        top: "0",
-        right: "0",
-        translateZ: "0",
-        rotateY: "0",
-        delay: "0",
-      });
-      setSecondCard({
-        top: "0",
-        right: "0",
-        translateZ: "1",
-        rotateY: "0",
-        delay: "0",
-      });
-      setThirdCard({
-        top: "0",
-        right: "0",
-        translateZ: "2",
-        rotateY: "0",
-        delay: "0",
-      });
-      setFourthCard({
-        top: "0",
-        right: "0",
-        translateZ: "3",
-        rotateY: "0",
-        delay: "0",
-      });
-    }, 800);
+    setShowAnimationBtn(true);
+    let steps = 0;
+    const totalSteps = 3;
+
+    const updateCards = (step) => {
+      if (step === 3) {
+        setCards(fiftyTwoCard);
+        setShowAnimationBtn(false);
+      } else {
+        const newCards = cards.map((card, i) => {
+          return {
+            ...card,
+            right: changeCardsProperty[i + 1][step]?.right,
+            translateZ: changeCardsProperty[i + 1][step]?.translateZ,
+            delay: changeCardsProperty[i + 1][step]?.delay,
+          };
+        });
+        setCards(newCards);
+      }
+    };
+
+    const interval = setInterval(() => {
+      if (steps <= totalSteps) {
+        updateCards(steps);
+        steps++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 300);
   };
+
   return (
     <main className="flex flex-col items-center lg:h-screen bg-zinc-800">
       <div className="react-joyride" />
@@ -275,12 +161,7 @@ const Home = () => {
 
             {/* <SuffleCard /> */}
 
-            <FiftyTwoCard
-              firstCard={firstCard}
-              secondCard={secondCard}
-              thirdCard={thirdCard}
-              fourthCardCard={fourthCardCard}
-            />
+            <FiftyTwoCard cards={cards} />
             <BetSlip />
           </main>
           <div
@@ -358,7 +239,10 @@ const Home = () => {
             </div>
           </div>
         </div>
-        <Sidebar handleClick={handleClick} />
+        <Sidebar
+          showAnimationBtn={showAnimationBtn}
+          handleClick={handleClick}
+        />
       </div>
     </main>
   );
