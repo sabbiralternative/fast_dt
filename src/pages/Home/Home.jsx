@@ -40,7 +40,7 @@ const Home = () => {
       } else {
         clearInterval(interval);
       }
-    }, 300);
+    }, 500);
   };
 
   return (
