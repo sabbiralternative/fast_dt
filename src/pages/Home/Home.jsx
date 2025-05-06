@@ -1,5 +1,4 @@
 // import SuffleCard from "./SuffleCard";
-
 import { useState } from "react";
 import BetSlip from "./BetSlip";
 import FiftyTwoCard from "./FiftyTwoCard";
@@ -14,10 +13,10 @@ const Home = () => {
   const handleClick = () => {
     setShowAnimationBtn(true);
     let steps = 0;
-    const totalSteps = 3;
+    const totalSteps = 6;
 
     const updateCards = (step) => {
-      if (step === 3) {
+      if (step === 6) {
         setCards(fiftyTwoCard);
         setShowAnimationBtn(false);
       } else {
@@ -40,7 +39,7 @@ const Home = () => {
       } else {
         clearInterval(interval);
       }
-    }, 500);
+    }, 300);
   };
 
   return (
