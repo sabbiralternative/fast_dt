@@ -9,6 +9,8 @@ const initialState = {
   selectedCategory: "ALL",
   showLanguageModal: false,
   showNotification: false,
+  showChip: false,
+  stake: 50,
 };
 
 const stateSlice = createSlice({
@@ -39,10 +41,18 @@ const stateSlice = createSlice({
     setShowNotification: (state, action) => {
       state.showNotification = action.payload;
     },
+    setShowChip: (state, action) => {
+      state.showChip = action.payload;
+    },
+    setStake: (state, action) => {
+      state.stake = action.payload;
+    },
   },
 });
 
 export const {
+  setStake,
+  setShowChip,
   setGroup,
   setAddBank,
   setShowLoginModal,

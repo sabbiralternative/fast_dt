@@ -30,9 +30,6 @@ export const eventsApi = baseApi.injectEndpoints({
           },
         };
       },
-      transformResponse: (data) => {
-        return handleDecryptData(JSON.stringify(data));
-      },
     }),
     mac88: builder.query({
       query: () => {

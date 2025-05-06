@@ -1,4 +1,4 @@
-const SuffleCard = () => {
+const FiftyTwoCardNotUsing = () => {
   return (
     <div className="relative w-full max-w-lg mx-auto min-h-[260px] flex-grow perspectiveOg">
       <div
@@ -10207,4 +10207,4 @@ const SuffleCard = () => {
   );
 };
 
-export default SuffleCard;
+export default FiftyTwoCardNotUsing;

@@ -1,10 +1,10 @@
-import FiftyTwoCard2 from "./FiftyTwoCard2";
+// import FiftyTwoCardNotUsing from "./FiftyTwoCardNotUsing";
 
 const FiftyTwoCard = ({ cards }) => {
   return (
     <>
       <div className="relative w-full max-w-lg mx-auto min-h-[260px] flex-grow perspectiveOg">
-        <FiftyTwoCard2 />
+        {/* <FiftyTwoCardNotUsing /> */}
         <div
           className="absolute top-0 left-0 flex items-center justify-center w-full h-full pointer-events-none applyPerspectiveOg"
           style={{ opacity: 1 }}

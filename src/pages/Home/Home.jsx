@@ -1,14 +1,34 @@
-// import SuffleCard from "./SuffleCard";
 import { useState } from "react";
 import BetSlip from "./BetSlip";
 import FiftyTwoCard from "./FiftyTwoCard";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { changeCardsProperty, fiftyTwoCard } from "../../static/fiftyTwoCard";
+import { useSelector } from "react-redux";
+import { useGetEventDetailsQuery } from "../../redux/features/events/events";
+import { playStakeChangeSound, playUndoSound } from "../../utils/sound";
 
 const Home = () => {
+  const [double, setDouble] = useState(false);
+  const [animation, setAnimation] = useState([]);
+  const [showWinLossResult, setShowWinLossResult] = useState(false);
+  const [totalWinAmount, setTotalWinAmount] = useState(null);
+  const [toast, setToast] = useState(null);
+  const { data } = useGetEventDetailsQuery(
+    { eventTypeId: 1000, eventId: 10007 },
+    { pollingInterval: 1000 }
+  );
+  const firstEvent = data?.result?.[0];
+  const { stake } = useSelector((state) => state.global);
   const [cards, setCards] = useState(fiftyTwoCard);
   const [showAnimationBtn, setShowAnimationBtn] = useState(false);
+  const initialState = {
+    dragon: { show: false, stake },
+    tie: { show: false, stake },
+    tiger: { show: false, stake },
+    suited: { show: false, stake },
+  };
+  const [stakeState, setStakeState] = useState(initialState);
 
   const handleClick = () => {
     setShowAnimationBtn(true);
@@ -40,6 +60,111 @@ const Home = () => {
         clearInterval(interval);
       }
     }, 300);
+  };
+
+  const handleUndoStake = () => {
+    playUndoSound();
+    setStakeState((prev) => {
+      const updatedState = { ...prev };
+      const prevValues = Object.entries(prev);
+      const isPlacedDouble = Object.values(stakeState).filter(
+        (item) => item?.double
+      );
+
+      if (isPlacedDouble?.length > 0) {
+        Object.keys(updatedState).forEach((key) => {
+          if (updatedState[key].show) {
+            updatedState[key] = {
+              ...updatedState[key],
+              stake: updatedState[key].stake / 2,
+              double: updatedState[key].double - 1,
+            };
+          }
+        });
+
+        return updatedState;
+      } else {
+        const maxSerialObject = prevValues.reduce(
+          (maxObj, [key, currentObj]) => {
+            if (currentObj.serial > (maxObj?.serial || 0)) {
+              return { key, obj: currentObj };
+            }
+            return maxObj;
+          },
+          {}
+        );
+
+        if (maxSerialObject.obj) {
+          const updatedObj = {
+            ...maxSerialObject.obj,
+            undo: [...maxSerialObject.obj.undo],
+          };
+
+          if (
+            updatedObj.undo.length > 0 &&
+            updatedObj.stake > updatedObj.undo[updatedObj.undo.length - 1]
+          ) {
+            updatedObj.stake -= updatedObj.undo.pop();
+          } else {
+            updatedObj.show = false;
+            delete updatedObj.serial;
+          }
+
+          return {
+            ...prev,
+            [maxSerialObject.key]: updatedObj,
+          };
+        }
+
+        return prev;
+      }
+    });
+  };
+  const handleDoubleStake = () => {
+    setDouble(true);
+    playStakeChangeSound();
+    setStakeState((prevState) => {
+      const updatedState = { ...prevState };
+      const maxSerial = Math.max(
+        0,
+        ...Object.values(updatedState)
+          .map((item) => item.serial)
+          .filter((serial) => serial !== undefined)
+      );
+
+      const oddNames = [];
+
+      Object.keys(updatedState).forEach((key) => {
+        if (updatedState[key].show) {
+          oddNames.push(key);
+        }
+      });
+      setAnimation(oddNames);
+
+      setTimeout(() => {
+        Object.keys(updatedState).forEach((key) => {
+          if (updatedState[key].show) {
+            const currentStake = updatedState[key].stake;
+            updatedState[key] = {
+              ...updatedState[key],
+              undo: [...updatedState[key].undo, currentStake],
+              serial: updatedState[key]?.serial
+                ? updatedState[key]?.serial
+                : maxSerial + 1,
+              stake: updatedState[key].stake * 2,
+              double: updatedState[key].double
+                ? updatedState[key].double + 1
+                : 1,
+            };
+          }
+        });
+
+        setDouble(false);
+        setAnimation([]);
+      }, 500);
+
+      return updatedState;
+    });
   };
 
   return (
@@ -158,10 +283,20 @@ const Home = () => {
           <main className="relative flex flex-col w-full gap-1 p-2 overflow-hidden rounded lg:h-full h-fit bg-black/20">
             <div className="absolute top-1 left-1 rounded overflow-clip grid grid-cols-2 gap-0.5 text-[9px] lg:text-xs text-white/30" />
 
-            {/* <SuffleCard /> */}
-
             <FiftyTwoCard cards={cards} />
-            <BetSlip />
+            <BetSlip
+              initialState={initialState}
+              setAnimation={setAnimation}
+              setShowWinLossResult={setShowWinLossResult}
+              setStakeState={setStakeState}
+              setToast={setToast}
+              setTotalWinAmount={setTotalWinAmount}
+              stakeState={stakeState}
+              data={data?.result}
+              status={firstEvent?.status}
+              animation={animation}
+              double={double}
+            />
           </main>
           <div
             className="fixed top-0 left-0 w-dvw h-dvh lg:w-full lg:h-full lg:absolute"
@@ -239,6 +374,10 @@ const Home = () => {
           </div>
         </div>
         <Sidebar
+          handleUndoStake={handleUndoStake}
+          handleDoubleStake={handleDoubleStake}
+          setStakeState={setStakeState}
+          initialState={initialState}
           showAnimationBtn={showAnimationBtn}
           handleClick={handleClick}
         />
