@@ -11,12 +11,12 @@ const Card = ({
   setStyleIndex,
   showCardAnimation,
   winCard,
+  isAnimationEnd,
+  tigerCard,
+  dragonCard,
   totalWinAmount,
   multiplier,
-  isAnimationEnd,
 }) => {
-  const cardNumber = winCard?.card && parseFloat(winCard?.card?.substring(1));
-
   useEffect(() => {
     if (styleIndex?.dragon <= 0 && showCardAnimation) {
       const timer = setTimeout(() => {
@@ -45,49 +45,7 @@ const Card = ({
 
   return (
     <>
-      {/* {isAnimationEnd && (
-        <>
-          {cardNumber > 7 ? (
-            <span
-              className="absolute z-50 flex items-center justify-center gap-1 px-2 py-1 text-sm font-medium text-black rounded lg:text-lg whitespace-nowrap "
-              style={{
-                transform: "translateY(-105%) translateZ(52px) translateX(50%)",
-                right: "40%",
-                top: "48%",
-                backgroundColor: "rgb(0, 231, 0)",
-              }}
-            >
-              7 Up
-            </span>
-          ) : cardNumber < 7 ? (
-            <span
-              className="absolute z-50 flex items-center justify-center gap-1 px-2 py-1 text-sm font-medium text-black rounded lg:text-lg whitespace-nowrap "
-              style={{
-                transform: "translateY(-105%) translateZ(52px) translateX(50%)",
-                right: "40%",
-                top: "48%",
-                backgroundColor: "rgb(255, 55, 95)",
-              }}
-            >
-              7 Down
-            </span>
-          ) : (
-            <span
-              className="absolute z-50 flex items-center justify-center gap-1 px-2 py-1 text-sm font-medium text-black rounded lg:text-lg whitespace-nowrap "
-              style={{
-                transform: "translateY(-105%) translateZ(52px) translateX(50%)",
-                right: "40%",
-                top: "48%",
-                backgroundColor: "rgb(59, 130, 246)",
-              }}
-            >
-              7
-            </span>
-          )}
-        </>
-      )} */}
-
-      {/* {isAnimationEnd && totalWinAmount !== 0 && (
+      {isAnimationEnd && totalWinAmount !== 0 && (
         <div
           style={{
             position: "absolute",
@@ -107,37 +65,37 @@ const Card = ({
             </span>
           </div>
         </div>
-      )} */}
+      )}
 
       {/* Dragon Start */}
       <div
         className={`relative border-2 shadow-sm transition-all ease-in-out duration-200 h-24 lg:h-40 aspect-[5/7] rounded bg-white ${
-          styleIndex.dragon === 1 && isAnimationEnd ? "border-stakeGreen" : ""
+          winCard.dragonCard && isAnimationEnd ? "border-stakeGreen" : ""
         }`}
         style={{
           ...dragonStyle[styleIndex?.dragon],
         }}
       >
-        {winCard?.suit === "H" && <Heart rank={winCard?.rank} />}
-        {winCard?.suit === "C" && <Club rank={winCard?.rank} />}
-        {winCard?.suit === "S" && <Spade rank={winCard?.rank} />}
-        {winCard?.suit === "D" && <Diamond rank={winCard?.rank} />}
+        {dragonCard?.suit === "H" && <Heart rank={dragonCard?.rank} />}
+        {dragonCard?.suit === "C" && <Club rank={dragonCard?.rank} />}
+        {dragonCard?.suit === "S" && <Spade rank={dragonCard?.rank} />}
+        {dragonCard?.suit === "D" && <Diamond rank={dragonCard?.rank} />}
       </div>
       {/* Dragon End */}
 
       {/* Tiger Start */}
       <div
         className={`relative border-2 shadow-sm transition-all ease-in-out duration-200 h-24 lg:h-40 aspect-[5/7] rounded bg-white ${
-          styleIndex.tiger === 1 && isAnimationEnd ? "border-stakeGreen" : ""
+          winCard?.tigerCard && isAnimationEnd ? "border-stakeGreen" : ""
         }`}
         style={{
           ...tigerStyle[styleIndex?.tiger],
         }}
       >
-        {winCard?.suit === "H" && <Heart rank={winCard?.rank} />}
-        {winCard?.suit === "C" && <Club rank={winCard?.rank} />}
-        {winCard?.suit === "S" && <Spade rank={winCard?.rank} />}
-        {winCard?.suit === "D" && <Diamond rank={winCard?.rank} />}
+        {tigerCard?.suit === "H" && <Heart rank={tigerCard?.rank} />}
+        {tigerCard?.suit === "C" && <Club rank={tigerCard?.rank} />}
+        {tigerCard?.suit === "S" && <Spade rank={tigerCard?.rank} />}
+        {tigerCard?.suit === "D" && <Diamond rank={tigerCard?.rank} />}
       </div>
       {/* Tiger End */}
     </>

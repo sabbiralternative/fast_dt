@@ -17,6 +17,7 @@ import { calculateTotalWin } from "../../utils";
 import toast from "react-hot-toast";
 import { handleUndoStake } from "../../utils/handleUndoStake";
 import { handleDoubleStake } from "../../utils/handleDoubleStake";
+import { findWinner } from "../../utils/findWinner";
 
 const Home = () => {
   const [addOrder] = useOrderMutation();
@@ -27,12 +28,17 @@ const Home = () => {
   });
   const [double, setDouble] = useState(false);
   const [animation, setAnimation] = useState([]);
-  const [winCard, setWinCard] = useState({
-    card: null,
-    suit: null,
-    rank: null,
-    rank_number: null,
-  });
+  const initialWinCardState = {
+    dragonCard: false,
+    tigerCard: false,
+    dragonBetSlip: false,
+    suitTieBetSlip: false,
+    tieBetSlip: false,
+    tigerBetSlip: false,
+  };
+  const [winCard, setWinCard] = useState(initialWinCardState);
+  const [dragonCard, setDragonCard] = useState(null);
+  const [tigerCard, setTigerCard] = useState(null);
   const [multiplier, setMultiplier] = useState(null);
   const [showTotalWinAmount, setShowTotalWinAmount] = useState(false);
   const [totalWinAmount, setTotalWinAmount] = useState(0);
@@ -62,17 +68,12 @@ const Home = () => {
     setIsAnimationEnd(false);
     setShowCardAnimation(true);
 
-    setWinCard({
-      card: null,
-      rank: null,
-      suit: null,
-      rank_number: null,
-    });
+    setWinCard(initialWinCardState);
 
     const filterPlacedBet = Object.values(stakeState).filter((bet) => bet.show);
     let payload = filterPlacedBet.map((bet) => ({
-      eventId: 30001,
-      eventName: "Fast Lucky 7A",
+      eventId: 30002,
+      eventName: "Fast Dragon Tiger",
       isback: 0,
       price: bet?.price,
       runner_name: bet?.runner_name,
@@ -84,30 +85,27 @@ const Home = () => {
         const res = await addOrder(payload).unwrap();
 
         if (res?.success) {
+          const card_dragon = res?.card_dragon;
+          const card_tiger = res?.card_tiger;
+          const winResult = findWinner(card_dragon, card_tiger);
+          setDragonCard(card_dragon);
+          setTigerCard(card_tiger);
           const calculateWin = calculateTotalWin(
-            res?.rank,
-            res?.suit,
-            res?.rank_number,
+            card_dragon,
+            card_tiger,
             payload
           );
-
           setTimeout(() => {
             setTimeout(() => {
               if (calculateWin > 0) {
                 playWinSound();
               }
             }, 1000);
+            setWinCard(winResult);
             setShowTotalWinAmount(true);
             setTotalWinAmount(calculateWin);
             setMultiplier((calculateWin / totalPlaceBet).toFixed(2));
             payload = [];
-
-            setWinCard({
-              card: res?.card,
-              suit: res?.suit,
-              rank: res?.rank,
-              rank_number: res?.rank_number,
-            });
           }, 2000);
         } else {
           toast.success(res?.error?.description[0]?.message);
@@ -182,12 +180,7 @@ const Home = () => {
   );
 
   const handleClear = () => {
-    setWinCard({
-      card: null,
-      rank: null,
-      suit: null,
-      rank_number: null,
-    });
+    setWinCard(initialWinCardState);
 
     if (styleIndex.dragon === 1 && styleIndex.tiger) {
       playCardBackSound();
@@ -346,9 +339,11 @@ const Home = () => {
             <div className="absolute top-1 left-1 rounded overflow-clip grid grid-cols-2 gap-0.5 text-[9px] lg:text-xs text-white/30" />
 
             <FiftyTwoCard
-              isAnimationEnd={isAnimationEnd}
-              multiplier={multiplier}
               totalWinAmount={totalWinAmount}
+              multiplier={multiplier}
+              dragonCard={dragonCard}
+              tigerCard={tigerCard}
+              isAnimationEnd={isAnimationEnd}
               winCard={winCard}
               showCardAnimation={showCardAnimation}
               setStyleIndex={setStyleIndex}

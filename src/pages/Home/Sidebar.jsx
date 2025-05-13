@@ -153,19 +153,6 @@ const Sidebar = ({
               : totalPlaceBet}
           </span>
         </div>
-        <div
-          className="flex flex-col items-center w-full gap-2 lg:flex-col-reverse"
-          style={{ pointerEvents: "auto" }}
-        >
-          <div className="flex items-center w-full">
-            <button className="p-2 w-full border-b-2 text-sm whitespace-nowrap border-stakeGreen bg-gradient-to-t from-stakeGreen/20 to-transparent text-white">
-              Manual
-            </button>
-            <button className="p-2 w-full border-b-2 text-sm whitespace-nowrap text-zinc-500">
-              Auto
-            </button>
-          </div>
-        </div>
       </div>
       <div
         id="step-gameParticipants"

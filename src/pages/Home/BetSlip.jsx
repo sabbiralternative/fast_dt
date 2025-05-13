@@ -14,10 +14,6 @@ const BetSlip = ({
   setIsAnimationEnd,
   isAnimationEnd,
 }) => {
-  const rank = winCard?.rank && parseFloat(winCard?.rank);
-  const rank_number = winCard?.rank_number && parseFloat(winCard?.rank_number);
-  const suit = winCard?.suit;
-
   const { stake } = useSelector((state) => state.global);
 
   const handleStakeChange = (payload) => {
@@ -27,8 +23,8 @@ const BetSlip = ({
     const { key } = payload;
     setAnimation([key]);
     const formatData = {
-      eventId: 30001,
-      eventName: "Fast Lucky 7A",
+      eventId: 30002,
+      eventName: "Fast Dragon Tiger",
       isback: 0,
       runner_name: payload.runner_name,
       price: payload.price,
@@ -96,7 +92,11 @@ const BetSlip = ({
             price: 1.98,
           })
         }
-        className="relative flex w-full items-center border justify-center rounded-r-2xl rounded-l-lg col-span-3 row-span-2 border-transparent bg-gradient-to-l from-blue/50 to-blue/70"
+        className={`relative flex w-full items-center border justify-center rounded-r-2xl rounded-l-lg col-span-3 row-span-2  bg-gradient-to-l from-blue/50 to-blue/70 ${
+          winCard?.dragonBetSlip && isAnimationEnd
+            ? "border-stakeGreen"
+            : "border-transparent"
+        }`}
         style={{ pointerEvents: "auto" }}
       >
         <svg
@@ -136,7 +136,11 @@ const BetSlip = ({
             price: 11,
           })
         }
-        className="relative flex w-full items-center border justify-center rounded-t-2xl col-span-3 h-14 border-transparent bg-gradient-to-t from-purple/50 to-purple/70"
+        className={`relative flex w-full items-center border justify-center rounded-t-2xl col-span-3 h-14  bg-gradient-to-t from-purple/50 to-purple/70 ${
+          winCard?.tieBetSlip && isAnimationEnd
+            ? "border-stakeGreen"
+            : "border-transparent"
+        }`}
         style={{ pointerEvents: "auto" }}
       >
         <span className="absolute tracking-widest font-serif font-semibold -translate-y-1/2 top-1/2 text-white/60 text-center text-lg text-white">
@@ -161,7 +165,11 @@ const BetSlip = ({
             price: 1.98,
           })
         }
-        className="relative flex w-full items-center border justify-center rounded-l-2xl rounded-r-lg col-span-3 row-span-2 border-transparent bg-gradient-to-r from-red/50 to-red/70"
+        className={`relative flex w-full items-center border justify-center rounded-l-2xl rounded-r-lg col-span-3 row-span-2  bg-gradient-to-r from-red/50 to-red/70 ${
+          winCard?.tigerBetSlip && isAnimationEnd
+            ? "border-stakeGreen"
+            : "border-transparent"
+        }`}
         style={{ pointerEvents: "auto" }}
       >
         <svg
@@ -201,7 +209,11 @@ const BetSlip = ({
             price: 50,
           })
         }
-        className="relative flex w-full items-center border justify-center rounded-b-2xl col-span-3 h-14 border-transparent bg-gradient-to-t from-green/50 to-green/70"
+        className={`relative flex w-full items-center border justify-center rounded-b-2xl col-span-3 h-14  bg-gradient-to-t from-green/50 to-green/70 ${
+          winCard?.suitTieBetSlip && isAnimationEnd
+            ? "border-stakeGreen"
+            : "border-transparent"
+        }`}
         style={{ pointerEvents: "auto" }}
       >
         <span className="absolute tracking-widest font-serif font-semibold -translate-y-1/2 top-1/2 text-white/60 text-center text-lg text-white">

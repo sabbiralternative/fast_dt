@@ -1,3 +1,4 @@
+import { Trophy } from "../../assets/Icon";
 import Card from "./Card";
 
 const FiftyTwoCard = ({
@@ -8,8 +9,10 @@ const FiftyTwoCard = ({
   showCardAnimation,
   winCard,
   totalWinAmount,
-  multiplier,
   isAnimationEnd,
+  tigerCard,
+  dragonCard,
+  multiplier,
 }) => {
   return (
     <>
@@ -122,8 +125,10 @@ const FiftyTwoCard = ({
 
           {showCard && (
             <Card
-              isAnimationEnd={isAnimationEnd}
               multiplier={multiplier}
+              tigerCard={tigerCard}
+              dragonCard={dragonCard}
+              isAnimationEnd={isAnimationEnd}
               totalWinAmount={totalWinAmount}
               winCard={winCard}
               showCardAnimation={showCardAnimation}
@@ -134,9 +139,15 @@ const FiftyTwoCard = ({
 
           <span className="z-50 whitespace-nowrap absolute left-[15%] flex justify-center gap-1 items-center px-2 py-1 text-xs font-medium text-white rounded bottom-2 bg-zinc-800">
             Dragon
+            <span className="absolute right-0 flex flex-col items-center translate-x-full text-gold">
+              {winCard?.dragonCard && isAnimationEnd && <Trophy />}
+            </span>
           </span>
           <span className="z-50 whitespace-nowrap absolute right-[15%] flex justify-center gap-1 items-center px-2 py-1 text-xs font-medium text-white rounded bottom-2 bg-zinc-800">
             Tiger
+            <span className="absolute right-0 flex flex-col items-center translate-x-full text-gold">
+              {winCard?.tigerCard && isAnimationEnd && <Trophy />}
+            </span>
           </span>
           <div className="absolute flex flex-col items-center w-full h-24 max-w-xs bottom-10">
             <div className="w-full h-full relative w-full">
