@@ -1,10 +1,19 @@
-// import FiftyTwoCardNotUsing from "./FiftyTwoCardNotUsing";
+import Card from "./Card";
 
-const FiftyTwoCard = ({ cards }) => {
+const FiftyTwoCard = ({
+  cards,
+  showCard,
+  styleIndex,
+  setStyleIndex,
+  showCardAnimation,
+  winCard,
+  totalWinAmount,
+  multiplier,
+  isAnimationEnd,
+}) => {
   return (
     <>
       <div className="relative w-full max-w-lg mx-auto min-h-[260px] flex-grow perspectiveOg">
-        {/* <FiftyTwoCardNotUsing /> */}
         <div
           className="absolute top-0 left-0 flex items-center justify-center w-full h-full pointer-events-none applyPerspectiveOg"
           style={{ opacity: 1 }}
@@ -110,6 +119,18 @@ const FiftyTwoCard = ({ cards }) => {
               </div>
             );
           })}
+
+          {showCard && (
+            <Card
+              isAnimationEnd={isAnimationEnd}
+              multiplier={multiplier}
+              totalWinAmount={totalWinAmount}
+              winCard={winCard}
+              showCardAnimation={showCardAnimation}
+              styleIndex={styleIndex}
+              setStyleIndex={setStyleIndex}
+            />
+          )}
 
           <span className="z-50 whitespace-nowrap absolute left-[15%] flex justify-center gap-1 items-center px-2 py-1 text-xs font-medium text-white rounded bottom-2 bg-zinc-800">
             Dragon
