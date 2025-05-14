@@ -1,7 +1,9 @@
 export const findWinner = (card_dragon, card_tiger) => {
+  const dragonRankNumber = Number(card_dragon?.rank_number);
+  const tigerRankNumber = Number(card_tiger?.rank_number);
   if (
-    card_dragon?.rank_number === card_tiger?.rank_number &&
-    card_dragon?.suit === card_dragon?.suit
+    dragonRankNumber == tigerRankNumber &&
+    card_dragon?.suit == card_dragon?.suit
   ) {
     return {
       dragonCard: true,
@@ -9,21 +11,21 @@ export const findWinner = (card_dragon, card_tiger) => {
       suitTieBetSlip: true,
     };
   } else if (
-    card_dragon?.rank_number === card_tiger?.rank_number &&
-    card_dragon?.suit !== card_dragon?.suit
+    dragonRankNumber == tigerRankNumber &&
+    card_dragon?.suit != card_dragon?.suit
   ) {
     return {
       dragonCard: true,
       tigerCard: true,
       tieBetSlip: true,
     };
-  } else if (card_dragon?.rank_number > card_tiger?.rank_number) {
+  } else if (dragonRankNumber > tigerRankNumber) {
     return {
       dragonCard: true,
       tigerCard: false,
       dragonBetSlip: true,
     };
-  } else if (card_dragon?.rank_number < card_tiger?.rank_number) {
+  } else if (dragonRankNumber < tigerRankNumber) {
     return {
       dragonCard: false,
       tigerCard: true,
