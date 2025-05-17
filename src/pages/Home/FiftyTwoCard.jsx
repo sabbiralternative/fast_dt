@@ -6,13 +6,15 @@ const FiftyTwoCard = ({
   showCard,
   styleIndex,
   setStyleIndex,
-  showCardAnimation,
   winCard,
   totalWinAmount,
   isAnimationEnd,
   tigerCard,
   dragonCard,
   multiplier,
+  isBetFast,
+  shuffle,
+  clear,
 }) => {
   return (
     <>
@@ -125,13 +127,15 @@ const FiftyTwoCard = ({
 
           {showCard && (
             <Card
+              clear={clear}
+              shuffle={shuffle}
+              isBetFast={isBetFast}
               multiplier={multiplier}
               tigerCard={tigerCard}
               dragonCard={dragonCard}
               isAnimationEnd={isAnimationEnd}
               totalWinAmount={totalWinAmount}
               winCard={winCard}
-              showCardAnimation={showCardAnimation}
               styleIndex={styleIndex}
               setStyleIndex={setStyleIndex}
             />

@@ -3,45 +3,97 @@ import Club from "./Card/Club";
 import Spade from "./Card/Spade";
 import Diamond from "./Card/Diamond";
 import Heart from "./Card/Heart";
-import { dragonStyle, tigerStyle } from "../../static";
+// import { dragonStyle, tigerStyle } from "../../static";
 import { playCardSound } from "../../utils/sound";
 
 const Card = ({
   styleIndex,
   setStyleIndex,
-  showCardAnimation,
   winCard,
   isAnimationEnd,
   tigerCard,
   dragonCard,
   totalWinAmount,
   multiplier,
+  isBetFast,
+  shuffle,
+  clear,
 }) => {
   useEffect(() => {
-    if (styleIndex?.dragon <= 0 && showCardAnimation) {
-      const timer = setTimeout(() => {
-        setStyleIndex((prev) => {
-          return {
-            ...prev,
-            dragon: prev.dragon + 1,
-          };
-        });
-      }, 400);
-      return () => clearTimeout(timer);
+    if (isBetFast) {
+      if (styleIndex?.dragon <= 0 && styleIndex?.tiger <= 0) {
+        const timer = setTimeout(() => {
+          setStyleIndex((prev) => {
+            return {
+              dragon: prev.dragon + 1,
+              tiger: prev.tiger + 1,
+            };
+          });
+        }, 400);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      if (styleIndex?.dragon <= 0) {
+        const timer = setTimeout(() => {
+          setStyleIndex((prev) => {
+            return {
+              ...prev,
+              dragon: prev.dragon + 1,
+            };
+          });
+        }, 400);
+        return () => clearTimeout(timer);
+      }
+      if (styleIndex?.tiger <= 0) {
+        const timer = setTimeout(() => {
+          playCardSound();
+          setStyleIndex((prev) => {
+            return {
+              ...prev,
+              tiger: prev.tiger + 1,
+            };
+          });
+        }, 250);
+        return () => clearTimeout(timer);
+      }
     }
-    if (styleIndex?.tiger <= 0 && showCardAnimation) {
-      const timer = setTimeout(() => {
-        playCardSound();
-        setStyleIndex((prev) => {
-          return {
-            ...prev,
-            tiger: prev.tiger + 1,
-          };
-        });
-      }, 250);
-      return () => clearTimeout(timer);
-    }
-  }, [styleIndex, setStyleIndex, showCardAnimation]);
+  }, [styleIndex, setStyleIndex, isBetFast]);
+
+  const dragonStyle = [
+    {
+      position: "absolute",
+      transformStyle: "preserve-3d",
+      right: isBetFast && !shuffle && !clear ? "40%:" : "0%",
+      top: isBetFast && !shuffle && !clear ? "48%:" : "0%",
+      transform: "translateZ(51px) rotateY(0deg)",
+    },
+
+    {
+      position: "absolute",
+      right: "65%",
+      top: "45%",
+      transform: "translateZ(54px) rotateY(-180deg)",
+      transformStyle: "preserve-3d",
+    },
+  ];
+
+  const tigerStyle = [
+    {
+      position: "absolute",
+      transformStyle: "preserve-3d",
+      right: isBetFast && !shuffle && !clear ? "40%:" : "0%",
+      top: isBetFast && !shuffle && !clear ? "48%:" : "0%",
+      transform: "translateZ(51px) rotateY(0deg)",
+    },
+
+    {
+      position: "absolute",
+      right: "20%",
+      top: "45%",
+      transform: "translateZ(54px) rotateY(-180deg)",
+      transformStyle: "preserve-3d",
+    },
+  ];
 
   return (
     <>

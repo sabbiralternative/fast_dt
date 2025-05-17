@@ -20,8 +20,11 @@ import { handleDoubleStake } from "../../utils/handleDoubleStake";
 import { findWinner } from "../../utils/findWinner";
 
 const Home = () => {
+  const [shuffle, setShuffle] = useState(false);
+  const [clear, setClear] = useState(false);
+  const [isBetFast, setIsBetFast] = useState(false);
   const [addOrder] = useOrderMutation();
-  const [showCardAnimation, setShowCardAnimation] = useState(false);
+
   const [styleIndex, setStyleIndex] = useState({
     dragon: 0,
     tiger: 0,
@@ -55,6 +58,11 @@ const Home = () => {
     SuitedTie: { show: false, stake },
   };
   const [stakeState, setStakeState] = useState(initialState);
+  const isPlaceStake = Object.values(stakeState).find((item) => item?.show);
+
+  const isRepeatTheBet = Object.values(stakeState).find(
+    (item) => item?.runner_name && item?.show === false
+  );
 
   let totalPlaceBet = 0;
   Object.values(stakeState).forEach((item) => {
@@ -63,15 +71,9 @@ const Home = () => {
     }
   });
 
-  const handleClick = (shuffle) => {
-    if (!shuffle) {
-      setLoading(true);
-      setIsAnimationEnd(false);
-    }
-
-    setShowCardAnimation(true);
-
-    setWinCard(initialWinCardState);
+  const handleClick = () => {
+    setLoading(true);
+    setIsAnimationEnd(false);
 
     const filterPlacedBet = Object.values(stakeState).filter((bet) => bet.show);
     let payload = filterPlacedBet.map((bet) => ({
@@ -83,94 +85,61 @@ const Home = () => {
       stake: bet?.stake,
     }));
 
-    if (payload?.length > 0 && !shuffle) {
-      const handleOrder = async () => {
-        const res = await addOrder(payload).unwrap();
-
-        if (res?.success) {
-          const card_dragon = res?.card_dragon;
-          const card_tiger = res?.card_tiger;
-          const winResult = findWinner(card_dragon, card_tiger);
-          setDragonCard(card_dragon);
-          setTigerCard(card_tiger);
-          const calculateWin = calculateTotalWin(
-            card_dragon,
-            card_tiger,
-            payload
-          );
-          setTimeout(() => {
-            setTimeout(() => {
-              if (calculateWin > 0) {
-                playWinSound();
-              }
-            }, 1000);
-            setWinCard(winResult);
-            setShowTotalWinAmount(true);
-            setTotalWinAmount(calculateWin);
-            setMultiplier((calculateWin / totalPlaceBet).toFixed(2));
-            payload = [];
-          }, 2000);
-        } else {
-          toast.success(res?.error?.description[0]?.message);
-        }
-      };
-      handleOrder();
-    }
-
     if (styleIndex.dragon === 1 && styleIndex.tiger) {
       playCardBackSound();
       setShowCard(true);
-      setTimeout(() => {
-        setShowCard(false);
-      }, 200);
-
       setStyleIndex({
         dragon: 0,
         tiger: 0,
       });
+      if (!isBetFast) {
+        setTimeout(() => {
+          setShowCard(false);
+        }, 200);
+      }
+    }
+
+    if (payload?.length > 0) {
+      handleOrder(payload);
+    }
+
+    if (!isBetFast) {
+      let steps = 0;
+      const totalSteps = 6;
+      const interval = setInterval(() => {
+        if (steps <= totalSteps) {
+          updateCards(steps);
+          steps++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 300);
+    }
+  };
+
+  const handleShuffle = () => {
+    setShuffle(true);
+
+    if (styleIndex.dragon && styleIndex.tiger) {
+      playCardBackSound();
+      setShowCard(true);
+      setStyleIndex({
+        dragon: 0,
+        tiger: 0,
+      });
+
+      setTimeout(() => {
+        setShowCard(false);
+        // setShuffle(false);
+      }, 200);
     }
 
     let steps = 0;
     const totalSteps = 6;
 
-    const updateCards = (step) => {
-      if (step === 2) {
-        playShuffleSound();
-      }
-
-      if (step === 6) {
-        if (!shuffle) {
-          playCardSound();
-        }
-        setTimeout(() => {
-          if (!shuffle) {
-            setIsAnimationEnd(true);
-          }
-          setLoading(false);
-        }, 1000);
-        setCards(fiftyTwoCard);
-
-        if (!shuffle) {
-          setTimeout(() => {
-            setShowCard(true);
-          }, 100);
-        }
-      } else {
-        const newCards = cards.map((card, i) => {
-          return {
-            ...card,
-            right: changeCardsProperty[i + 1][step]?.right,
-            translateZ: changeCardsProperty[i + 1][step]?.translateZ,
-            delay: changeCardsProperty[i + 1][step]?.delay,
-          };
-        });
-        setCards(newCards);
-      }
-    };
-
     const interval = setInterval(() => {
       if (steps <= totalSteps) {
-        updateCards(steps);
+        updateCards(steps, true);
         steps++;
       } else {
         clearInterval(interval);
@@ -178,16 +147,90 @@ const Home = () => {
     }, 300);
   };
 
-  const isPlaceStake = Object.values(stakeState).find((item) => item?.show);
+  const handleOrder = async (payload) => {
+    const res = await addOrder(payload).unwrap();
 
-  const isRepeatTheBet = Object.values(stakeState).find(
-    (item) => item?.runner_name && item?.show === false
-  );
+    if (res?.success) {
+      const card_dragon = res?.card_dragon;
+      const card_tiger = res?.card_tiger;
+      const winResult = findWinner(card_dragon, card_tiger);
+      setDragonCard(card_dragon);
+      setTigerCard(card_tiger);
+      const calculateWin = calculateTotalWin(card_dragon, card_tiger, payload);
+      setTimeout(
+        () => {
+          setTimeout(
+            () => {
+              if (calculateWin > 0) {
+                playWinSound();
+              }
+            },
+            isBetFast ? 500 : 1000
+          );
+          setWinCard(winResult);
+          setShowTotalWinAmount(true);
+          setTotalWinAmount(calculateWin);
+          setMultiplier((calculateWin / totalPlaceBet).toFixed(2));
+          payload = [];
+        },
+        isBetFast ? 500 : 2000
+      );
+      if (isBetFast) {
+        setTimeout(() => {
+          setLoading(false);
+          setShowCard(true);
+        }, 500);
+      }
+      if (isBetFast) {
+        setTimeout(() => {
+          setIsAnimationEnd(true);
+          setShuffle(false);
+          setClear(false);
+        }, 1000);
+      }
+    } else {
+      toast.success(res?.error?.description[0]?.message);
+    }
+  };
+  const updateCards = (step, shuffle) => {
+    if (step === 2) {
+      playShuffleSound();
+    }
 
+    if (step === 6) {
+      if (!shuffle) {
+        playCardSound();
+      }
+      setTimeout(() => {
+        if (!shuffle) {
+          setIsAnimationEnd(true);
+        }
+        setLoading(false);
+      }, 1000);
+      setCards(fiftyTwoCard);
+
+      if (!shuffle) {
+        setTimeout(() => {
+          setShowCard(true);
+        }, 100);
+      }
+    } else {
+      const newCards = cards.map((card, i) => {
+        return {
+          ...card,
+          right: changeCardsProperty[i + 1][step]?.right,
+          translateZ: changeCardsProperty[i + 1][step]?.translateZ,
+          delay: changeCardsProperty[i + 1][step]?.delay,
+        };
+      });
+      setCards(newCards);
+    }
+  };
   const handleClear = () => {
+    setClear(true);
     setWinCard(initialWinCardState);
 
-    if (styleIndex.dragon === 1 && styleIndex.tiger) {
+    if (styleIndex.dragon && styleIndex.tiger) {
       playCardBackSound();
       setStyleIndex({
         dragon: 0,
@@ -323,14 +366,20 @@ const Home = () => {
                 />
               </svg>
             </button>
-            <button disabled className="disabled:opacity-50">
+            <button
+              onClick={() => setIsBetFast((prev) => !prev)}
+              disabled={!isPlaceStake}
+              className="disabled:opacity-50"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
                 aria-hidden="true"
                 data-slot="icon"
-                className="w-5 h-5 text-white/50"
+                className={`w-5 h-5 ${
+                  isBetFast ? "text-yellow" : "text-white/50"
+                }`}
               >
                 <path
                   fillRule="evenodd"
@@ -344,13 +393,15 @@ const Home = () => {
             <div className="absolute top-1 left-1 rounded overflow-clip grid grid-cols-2 gap-0.5 text-[9px] lg:text-xs text-white/30" />
 
             <FiftyTwoCard
+              clear={clear}
+              shuffle={shuffle}
+              isBetFast={isBetFast}
               totalWinAmount={totalWinAmount}
               multiplier={multiplier}
               dragonCard={dragonCard}
               tigerCard={tigerCard}
               isAnimationEnd={isAnimationEnd}
               winCard={winCard}
-              showCardAnimation={showCardAnimation}
               setStyleIndex={setStyleIndex}
               styleIndex={styleIndex}
               showCard={showCard}
@@ -444,6 +495,7 @@ const Home = () => {
           </div>
         </div>
         <Sidebar
+          handleShuffle={handleShuffle}
           loading={loading}
           setStyleIndex={setStyleIndex}
           setShowCard={setShowCard}
