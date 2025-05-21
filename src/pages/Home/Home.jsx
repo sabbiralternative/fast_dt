@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BetSlip from "./BetSlip";
 import FiftyTwoCard from "./FiftyTwoCard";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { changeCardsProperty, fiftyTwoCard } from "../../static/fiftyTwoCard";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useOrderMutation } from "../../redux/features/events/events";
 import {
   clickSound,
@@ -19,8 +19,21 @@ import { handleUndoStake } from "../../utils/handleUndoStake";
 import { handleDoubleStake } from "../../utils/handleDoubleStake";
 import { findWinner } from "../../utils/findWinner";
 import { useStateContext } from "../../context/ApiProvider";
+import { setBalance } from "../../redux/features/auth/authSlice";
+import HowToPlay from "./HowToPlay";
+import RecentPNL from "./RecentPNL";
+import SinglePNL from "./SinglePNL";
 
 const Home = () => {
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showRecentPNL, setShowRecentPNL] = useState(false);
+  const [singlePNL, setSinglePNL] = useState(null);
+  const [isMute, setIsMute] = useState(false);
+  const dispatch = useDispatch();
+  const storedBetHistory = localStorage.getItem("betHistory");
+  const storedMute = localStorage.getItem("isMute") || false;
+  const betHistory = storedBetHistory ? JSON.parse(storedBetHistory) : [];
+  const [history, setHistory] = useState([]);
   const [shuffle, setShuffle] = useState(false);
   const [clear, setClear] = useState(false);
   const [isBetFast, setIsBetFast] = useState(false);
@@ -48,6 +61,7 @@ const Home = () => {
   const { totalWinAmount, setTotalWinAmount, setShowTotalWin } =
     useStateContext();
   const { stake } = useSelector((state) => state.global);
+  const { balance } = useSelector((state) => state.auth);
   const [cards, setCards] = useState(fiftyTwoCard);
 
   const [isAnimationEnd, setIsAnimationEnd] = useState(false);
@@ -151,10 +165,32 @@ const Home = () => {
 
   const handleOrder = async (payload) => {
     const res = await addOrder(payload).unwrap();
-
+    let totalStake = 0;
+    for (const bet of payload) {
+      totalStake += bet?.stake;
+    }
     if (res?.success) {
+      console.log(res);
+
       const card_dragon = res?.card_dragon;
       const card_tiger = res?.card_tiger;
+
+      const historyObj = {
+        card_dragon,
+        card_tiger,
+        client_seed: res?.client_seed,
+        event_id: res?.event_id,
+        round_id: res?.round_id,
+        round_time: res?.round_time,
+        server_seed: res?.server_seed,
+        wallet: res?.wallet,
+        winner: res?.winner,
+      };
+      let betHistory = [];
+      const storedBetHistory = localStorage.getItem("betHistory");
+      if (storedBetHistory) {
+        betHistory = JSON.parse(storedBetHistory);
+      }
       const winResult = findWinner(card_dragon, card_tiger);
       setDragonCard(card_dragon);
       setTigerCard(card_tiger);
@@ -164,9 +200,22 @@ const Home = () => {
           setTimeout(
             () => {
               if (calculateWin > 0) {
+                dispatch(setBalance(calculateWin + balance));
+                betHistory.unshift({
+                  ...historyObj,
+                  result: "win",
+                });
                 playWinSound();
                 setShowTotalWin(true);
+              } else {
+                dispatch(setBalance(balance - totalStake));
+                betHistory.unshift({
+                  ...historyObj,
+                  result: "loss",
+                });
               }
+              localStorage.setItem("betHistory", JSON.stringify(betHistory));
+              setHistory(betHistory);
             },
             isBetFast ? 500 : 1000
           );
@@ -282,8 +331,34 @@ const Home = () => {
     }, 300);
   };
 
+  useEffect(() => {
+    setHistory(betHistory);
+    setIsMute(storedMute);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleMuteSetting = () => {
+    if (isMute) {
+      localStorage.removeItem("isMute");
+      setIsMute(false);
+    } else {
+      localStorage.setItem("isMute", true);
+      setIsMute(true);
+    }
+  };
+
+  const handleShowSinglePNL = (round_id) => {
+    const findPNLByRoundId = history?.find((bet) => bet?.round_id === round_id);
+    setSinglePNL(findPNLByRoundId);
+  };
+
   return (
     <main className="flex flex-col items-center lg:h-screen bg-zinc-800">
+      {showHowToPlay && <HowToPlay setShowHowToPlay={setShowHowToPlay} />}
+      {showRecentPNL && <RecentPNL setShowRecentPNL={setShowRecentPNL} />}
+      {singlePNL && (
+        <SinglePNL singlePNL={singlePNL} setSinglePNL={setSinglePNL} />
+      )}
       <div className="react-joyride" />
       <Header />
       <div className="flex flex-col flex-grow w-full lg:overflow-y-auto lg:flex-row-reverse bg-zinc-800">
@@ -300,14 +375,26 @@ const Home = () => {
                   "linear-gradient(to right,black 0%,black 80%,transparent )",
               }}
             >
-              <span className="px-3 py-1 animate__animated rounded-full border border-transparent cursor-pointer font-semibold bg-stakeGreen/5 text-stakeGreen hover:border-stakeGreen z-50">
-                Dragon
-              </span>
-              <span className="px-3 py-1 animate__animated rounded-full border border-transparent cursor-pointer font-semibold bg-stakeGreen/5 text-stakeGreen hover:border-stakeGreen z-50">
-                Dragon
-              </span>
+              {history?.map((bet, i) => (
+                <span
+                  onClick={() => handleShowSinglePNL(bet?.round_id)}
+                  key={i}
+                  className={`px-3 py-1  animate__animated rounded-full border border-transparent  cursor-pointer font-semibold 
+                  ${
+                    bet?.result === "win"
+                      ? "bg-stakeGreen/5 text-stakeGreen hover:border-stakeGreen"
+                      : "bg-white/5 hover:border-white/10"
+                  }
+                 z-50`}
+                >
+                  {bet?.winner}
+                </span>
+              ))}
             </div>
-            <button className="ml-auto disabled:opacity-50 text-white/50 active:text-white">
+            <button
+              onClick={() => setShowRecentPNL(true)}
+              className="ml-auto disabled:opacity-50 text-white/50 active:text-white"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -340,20 +427,36 @@ const Home = () => {
                 <path d="M4 15l4 -6l4 2l4 -5l4 4" />
               </svg>
             </div>
-            <div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-                data-slot="icon"
-                className="w-5 h-5"
-              >
-                <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z" />
-                <path d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z" />
-              </svg>
+            <div onClick={handleMuteSetting}>
+              {isMute ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  data-slot="icon"
+                  className="w-5 h-5 text-white/50"
+                >
+                  <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06ZM17.78 9.22a.75.75 0 1 0-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 1 0 1.06-1.06L20.56 12l1.72-1.72a.75.75 0 1 0-1.06-1.06l-1.72 1.72-1.72-1.72Z"></path>
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  data-slot="icon"
+                  className="w-5 h-5"
+                >
+                  <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 0 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z" />
+                  <path d="M15.932 7.757a.75.75 0 0 1 1.061 0 6 6 0 0 1 0 8.486.75.75 0 0 1-1.06-1.061 4.5 4.5 0 0 0 0-6.364.75.75 0 0 1 0-1.06Z" />
+                </svg>
+              )}
             </div>
-            <button className="disabled:opacity-50 text-white/50 active:text-white">
+            <button
+              onClick={() => setShowHowToPlay(true)}
+              className="disabled:opacity-50 text-white/50 active:text-white"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
